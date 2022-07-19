@@ -1,5 +1,4 @@
 {% extends 'base.html' %} {% block content %}
-
 <h1>Car Details</h1>
 <div class="card">
   <div class="card-content">
@@ -8,5 +7,11 @@
     <p><b>Model:</b> {{ car.model }}</p>
     <p><b>Color:</b> {{ car.color }}</p>
   </div>
+  <!-- Add the following markup -->
+  <div class="card-action">
+    <a href="{% url 'cars_update' car.id %}">Edit</a>
+    <a href="{% url 'cars_delete' car.id %}">Delete</a>
+  </div>
+  <!-- New markup above -->
 </div>
 {% endblock %}
