@@ -1,17 +1,105 @@
 {% extends 'base.html' %} {% block content %}
+
 <h1>Car Details</h1>
-<div class="card">
-  <div class="card-content">
-    <span class="card-title">{{ car.name }}</span>
-    <p><b>Make:</b> {{ car.make }}</p>
-    <p><b>Model:</b> {{ car.model }}</p>
-    <p><b>Color:</b> {{ car.color }}</p>
+
+<div class="row">
+  <div class="col s6">
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">{{ car.name }}</span>
+        <p><b>Make:</b> {{ car.make }}</p>
+        <p><b>Model:</b> {{ car.model }}</p>
+        <p><b>Color:</b> {{ car.color }}</p>
+      </div>
+      <div class="card-action">
+        <a href="{% url 'cars_update' car.id %}">Edit</a>
+        <a href="{% url 'cars_delete' car.id %}">Delete</a>
+      </div>
+    </div>
   </div>
-  <!-- Add the following markup -->
-  <div class="card-action">
-    <a href="{% url 'cars_update' car.id %}">Edit</a>
-    <a href="{% url 'cars_delete' car.id %}">Delete</a>
+  <div class="col s6">
+    <form action="{% url 'add_racing' car.id %}" method="POST">
+      {% csrf_token %} {{ racing_form.as_p }}
+      <input type="submit" class="btn" value="Add Racing" />
+    </form>
+    <table class="striped">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Location</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for racing in car.racing_set.all %}
+        <tr>
+          <td>{{racing.date}}</td>
+          <td>{{racing.location}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-  <!-- New markup above -->
 </div>
+<!-- This is all new markup to be added just above the <script> tag -->
+<hr />
+<div class="row">
+  <div class="col s6">
+    <h3>{{ car.make }}'s Accessories</h3>
+    {% if car.accessories.count %} {% for car in car.accessories.all %}
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">
+          A
+          <span style="color: {{ car.color }}">{{ car.color }}</span>
+          {{ car.name }}
+        </span>
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <h5>No Accessories :(</h5>
+    {% endif %}
+  </div>
+  <!-- Available accessories will come after this line -->
+  <!-- Available toys will come after this line -->
+  <div class="col s6">
+    <h3>Available Accessories</h3>
+    {% if accessories.count %} {% for accessory in accessories.all %}
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">
+          A
+          <span style="color: {{ accessory.color }}"
+            >{{ accessory.color }}</span
+          >
+          {{ accessory.name }}
+        </span>
+      </div>
+      <div class="card-action">
+        <form
+          action="{% url 'assoc_accessory' car.id accessory.id %}"
+          method="POST"
+        >
+          {% csrf_token %}
+          <button type="submit" class="btn">Add</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <h5>{{car.make}} Already Has All Accessories Available</h5>
+    {% endif %}
+  </div>
+</div>
+<script>
+  const dateEl = document.getElementById('id_date');
+  M.Datepicker.init(dateEl, {
+    format: 'yyyy-mm-dd',
+    defaultDate: new Date(),
+    setDefaultDate: true,
+    autoClose: true,
+  });
+
+  // add additional JS to initialize select below
+  const selectEl = document.getElementById('id_meal');
+  M.FormSelect.init(selectEl);
+</script>
 {% endblock %}

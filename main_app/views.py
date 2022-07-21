@@ -1,7 +1,9 @@
 from django.http import HttpResponse
-from django.shortcuts import render
-from .models import Car
+from django.shortcuts import render, redirect
+from .models import Accessory, Car
+from .forms import RacingForm
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView
 
 # ! CONTROLLER
 # Create your views here.
@@ -36,14 +38,25 @@ def cars_index(request):
     return render(request, 'cars/index.html', {'cars': cars})
 
 
+# def cars_detail(request, car_id):
+#     car = Car.objects.get(id=car_id)
+#     return render(request, 'cars/detail.html', {'car': car})
+# update this view function
 def cars_detail(request, car_id):
     car = Car.objects.get(id=car_id)
-    return render(request, 'cars/detail.html', {'car': car})
+    id_list = car.accessories.all().values_list('id')
+    accessories_car_doesnt_have = Accessory.objects.exclude(id__in=id_list)
+    racing_form = RacingForm()
+    return render(request, 'cars/detail.html', {
+        'car': car, 'racing_form': racing_form,
+        'accessories': accessories_car_doesnt_have
+    })
 
 
 class CarCreate(CreateView):
     model = Car
-    fields = '__all__'
+    fields = ['make', 'model', 'color']
+
     success_url = '/cars/'
 
 
@@ -55,3 +68,42 @@ class CarUpdate(UpdateView):
 class CarDelete(DeleteView):
     model = Car
     success_url = '/cars/'
+
+
+def add_racing(request, car_id):
+    # create a ModelForm instance using the data in request.POST
+    form = RacingForm(request.POST)
+    # validate the form
+    if form.is_valid():
+        new_racing = form.save(commit=False)
+        new_racing.car_id = car_id
+        new_racing.save()
+    return redirect('detail', car_id=car_id)
+
+
+class AccessoryList(ListView):
+    model = Accessory
+
+
+class AccessoryDetail(DetailView):
+    model = Accessory
+
+
+class AccessoryCreate(CreateView):
+    model = Accessory
+    fields = '__all__'
+
+
+class AccessoryUpdate(UpdateView):
+    model = Accessory
+    fields = ['name', 'color']
+
+
+class AccessoryDelete(DeleteView):
+    model = Accessory
+    success_url = '/cars/'
+
+
+def assoc_accessory(request, car_id, accessory_id):
+    Car.objects.get(id=car_id).accessories.add(accessory_id)
+    return redirect('detail', car_id=car_id)
